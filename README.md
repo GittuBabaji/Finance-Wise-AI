@@ -1,2 +1,3 @@
 # Finoplus
-An Ai based financial advisory web application to detect chances of fraud in future and provide financial assistance to the user.
+An *Ai* based _financial  advisory_web application to detect chances of fraud in future and provide financial assistance to the user.
+**A PROPER CHAT BOT**
