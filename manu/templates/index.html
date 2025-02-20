@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Investment Advisor AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .chat-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        .message {
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        <blade keyframes|%20fadeIn%20%7B>from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+        }
+    </style>
+</head>
+
+<body class="flex items-center justify-center">
+    <div class="w-full max-w-2xl mx-auto p-6">
+        <div class="bg-white rounded-xl shadow-2xl p-6">
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">
+                Investment Advisor AI
+            </h1>
+
+            <div id="chat-container" class="chat-container mb-6 p-4 bg-gray-50 rounded-lg">
+                <div id="messages" class="space-y-4"></div>
+            </div>
+
+            <div class="flex space-x-2">
+                <input id="user-input" type="text"
+                    class="flex-1 p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="Ask about investments...">
+                <button id="send-btn"
+                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-200">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const chatContainer = document.getElementById('messages');
+        const userInput = document.getElementById('user-input');
+        const sendBtn = document.getElementById('send-btn');
+
+        function addMessage(content, isUser = false) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message p-3 rounded-lg ${
+                isUser ? 'bg-blue-100 ml-auto' : 'bg-gray-200'
+            } max-w-[80%]`;
+            messageDiv.textContent = content;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        async function sendMessage() {
+            const message = userInput.value.trim();
+            if (!message) return;
+
+            addMessage(message, true);
+            userInput.value = '';
+            sendBtn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:5000/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        message
+                    })
+                });
+
+                const data = await response.json();
+                if (data.error) {
+                    addMessage(`Error: ${data.error}`);
+                } else {
+                    addMessage(data.response);
+                }
+            } catch (error) {
+                addMessage('Error: Could not connect to server');
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
+
+        sendBtn.addEventListener('click', sendMessage);
+        userInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') sendMessage();
+        });
+    </script>
+</body>
+
+</html>
