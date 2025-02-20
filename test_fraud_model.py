@@ -34,6 +34,7 @@ class FraudDetectionModel(nn.Module):
 with open("scaler.pkl", "rb") as f:
     scaler = pickle.load(f)
     print("Scaler loaded successfully!")
+    print("Scaler expected features:", scaler.feature_names_in_)  # Debugging: Show expected features
 
 # Load the model
 input_dim = scaler.n_features_in_  # Get input dimension from scaler
@@ -72,9 +73,12 @@ def generate_fraud_explanation(transaction_data):
         probs = torch.nn.functional.softmax(outputs.logits, dim=-1)
     return f"Fraud probability from LLM: {probs[0][1]:.2f}"
 
-# Function to preprocess new data (adapt based on your training preprocessing)
+# Function to preprocess new data (corrected to align with scaler)
 def preprocess_new_data(df):
-    # Apply the same preprocessing as in training
+    # Get the expected feature names from the scaler
+    expected_features = scaler.feature_names_in_
+    
+    # Apply the same preprocessing as in training (e.g., factorize categorical columns)
     categorical_cols = df.select_dtypes(include=['object']).columns
     df[categorical_cols] = df[categorical_cols].apply(lambda x: pd.factorize(x)[0])
     
@@ -82,6 +86,26 @@ def preprocess_new_data(df):
     X = df.drop([col for col in df.columns if 'id' in col.lower() or 'date' in col.lower()], 
                 axis=1, 
                 errors='ignore')
+    
+    # Debugging: Show columns before alignment
+    print("Columns in new data before alignment:", X.columns.tolist())
+    
+    # Align columns with those expected by the scaler
+    missing_cols = set(expected_features) - set(X.columns)
+    extra_cols = set(X.columns) - set(expected_features)
+    
+    # Remove extra columns
+    X = X.drop(columns=extra_cols, errors='ignore')
+    
+    # Add missing columns with default values (e.g., 0 or mean from training)
+    for col in missing_cols:
+        X[col] = 0  # Or use a more appropriate default based on your data
+    
+    # Ensure the order matches the scaler's expectation
+    X = X[expected_features]
+    
+    # Debugging: Show columns after alignment
+    print("Columns in new data after alignment:", X.columns.tolist())
     
     # Handle missing values
     X = X.fillna(X.mean())
@@ -114,8 +138,17 @@ def predict_fraud(X_scaled, original_data=None):
     return results
 
 # Example: Load and test new data
-# Replace "new_transactions.csv" with your actual test data file
-new_data = pd.read_csv("new_transactions.csv")  # Your new test data
+try:
+    new_data = pd.read_csv("new_transactions.csv")  # Replace with correct path if needed
+    print("New data loaded successfully with columns:", new_data.columns.tolist())  # Debugging
+except FileNotFoundError:
+    print("Error: 'new_transactions.csv' not found in the current directory.")
+    print("Please ensure the file exists in '/home/wizard/code/projects/Ai/' or provide the correct path.")
+    exit(1)
+
+# Optional: Rename columns to match training data (example mapping)
+new_data = new_data.rename(columns={"amt": "amount", "cc_num": "credit_card_number"})  # Adjust as needed
+
 X_scaled, original_data = preprocess_new_data(new_data)
 predictions = predict_fraud(X_scaled, original_data)
 
