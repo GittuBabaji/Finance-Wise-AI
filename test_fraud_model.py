@@ -164,7 +164,7 @@ def predict_fraud(X_scaled, original_data=None):
 
 # Main execution
 print("Status: Loading new data...")
-file_path = "/home/wizard/code/projects/Ai/new_transactions.csv"
+file_path = "./new_transactions.csv"
 if not os.path.exists(file_path):
     print(f"Status: Error - '{file_path}' not found!")
     print("Please place 'new_transactions.csv' in the correct directory or update the path.")
