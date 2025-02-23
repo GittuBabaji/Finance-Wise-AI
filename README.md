@@ -162,7 +162,7 @@ financewise/
 
 - **Jaydeep Pokahriya** – Full Stack Development (Flask Backend + Frontend) and Git Handling
 - **Harsh** – Sentinel AI Model Training & Optimization
-- **Jayesh Laama** – Moneto API Integration & LLM Configuration
+- **Jayesh** – Moneto API Integration & LLM Configuration
 - **Krrish** – Project Presentation & Technical Documentation
 
 
